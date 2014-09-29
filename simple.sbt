@@ -19,7 +19,7 @@ libraryDependencies ++= Seq(
   //"joda-time" % "joda-time" % "2.4",
   "org.json4s" %% "json4s-jackson" % "3.2.10",
   "org.json4s" %% "json4s-ext" % "3.2.10",
-  //"org.scalaz" %% "scalaz-core" % "7.0.6",
+  "org.scalaz" %% "scalaz-core" % "7.0.6",
   //"org.scalatest" %% "scalatest" % "2.2.2",
   "junit" % "junit" % "4.11",
   "com.google.protobuf" % "protobuf-java" % "2.5.0",
