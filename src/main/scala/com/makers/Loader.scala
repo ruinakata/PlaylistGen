@@ -1,5 +1,7 @@
 package com.makers
 
+import com.makers.model._
+
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 

@@ -4,6 +4,6 @@ object App {
 
   def main(args: Array[String]) {
     println("Hello")
-    PlaylistDownloader.run("universe.small", "playlists.json")
+    //PlaylistDownloader.run(args(0), args(1))
   }
 }
