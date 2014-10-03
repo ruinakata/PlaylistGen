@@ -10,8 +10,9 @@ class Recommender(val users: List[User]) {
     val uniques = uniqueArtists.toList.zipWithIndex
     val uniqueCount = uniques.length
     val inputV = toSV(uniqueCount, indexUniques(uniques, artists))
+    val universe = users.flatMap(_.playlists).filter(_.uniqueArtists.size > 4)
 
-    val similar = users.flatMap(_.playlists).map { pl =>
+    val similar = universe.map { pl =>
       val plV = toSV(uniqueCount, indexUniques(uniques, pl.songs.map(_.artist).toSet.toList))
       (pl, (inputV dot plV) / (inputV.norm() * plV.norm() ))
     }

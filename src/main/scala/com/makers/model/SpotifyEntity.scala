@@ -23,7 +23,10 @@ case class Playlist(
   val followerCount: Int,
   val owner: UserInfo,
   val songs: List[Song]
-) extends SpotifyEntity with Jsonable
+) extends SpotifyEntity with Jsonable {
+
+  def uniqueArtists() = songs.map(_.artist.name).toSet
+}
 
 case class Song(
   val id: String,

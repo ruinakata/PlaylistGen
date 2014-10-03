@@ -37,6 +37,7 @@ object PlaylistDownloader {
     w.write("]")
     w.close
     println("Total requests: " + api.count)
+    api.shutdown
   }
 
 
