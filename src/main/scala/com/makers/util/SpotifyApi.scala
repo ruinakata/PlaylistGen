@@ -6,17 +6,17 @@ import com.wrapper.spotify.Api
 
 
 class SpotifyApi(clientId: String, clientSecret: String) {
-  val ex = new ScheduledThreadPoolExecutor(1)
+  private val ex = new ScheduledThreadPoolExecutor(1)
   @volatile private var _api = Api.builder
     .clientId(clientId)
     .clientSecret(clientSecret)
     .build
 
-  val dt = refreshToken()
-  val task = new Runnable {
+  private val dt = refreshToken()
+  private val task = new Runnable {
     def run() = refreshToken()
   }
-  ex.scheduleAtFixedRate(task, (dt*0.75).toInt, dt, TimeUnit.SECONDS)
+  private val running = ex.scheduleAtFixedRate(task, (dt*0.75).toInt, dt, TimeUnit.SECONDS)
 
   def refreshToken() = {
     val (token, expiration) = SpotifyApi.getAccessToken(_api)
@@ -24,7 +24,16 @@ class SpotifyApi(clientId: String, clientSecret: String) {
     expiration
   }
 
-  def get = _api
+  var count = 0
+  def get = {
+    count += 1
+    _api
+  }
+
+  def shutdown() {
+    running.cancel(false)
+    ex.shutdownNow()
+  }
 }
 
 private object SpotifyApi {

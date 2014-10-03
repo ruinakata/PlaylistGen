@@ -27,4 +27,3 @@ object User {
     User(info, cleaned.flatten)
   }
 }
-
