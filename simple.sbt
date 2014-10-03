@@ -4,7 +4,7 @@ name := "Playlist Generator"
 
 version := "0.1"
 
-scalaVersion := "2.10.4"
+scalaVersion := "2.11.2"
 
 resolvers ++= Seq(
   "apache"                 at "http://repo.maven.apache.org/maven2",
@@ -13,14 +13,9 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  //"org.scalikejdbc" %% "scalikejdbc" % "2.0.5",
-  //"org.xerial" % "sqlite-jdbc" % "3.7.2",
-  //"mysql" % "mysql-connector-java" % "5.1.32",
-  //"joda-time" % "joda-time" % "2.4",
   "org.json4s" %% "json4s-jackson" % "3.2.10",
   "org.json4s" %% "json4s-ext" % "3.2.10",
   "org.scalaz" %% "scalaz-core" % "7.0.6",
-  //"org.scalatest" %% "scalatest" % "2.2.2",
   "junit" % "junit" % "4.11",
   "com.google.protobuf" % "protobuf-java" % "2.5.0",
   "commons-httpclient" % "commons-httpclient" % "3.1",
@@ -29,7 +24,17 @@ libraryDependencies ++= Seq(
   "com.google.guava" % "guava" % "17.0-rc2"
 )
 
-unmanagedJars in Compile ++= (file("project/lib/") * "*.jar").classpath
+initialCommands in console :=
+  """
+  import collection.JavaConverters._
+  import com.makers._
+  import com.wrapper.spotify.Api
+  val api = Api.builder.clientId("276a56a316944e23a41d97b6b1895fdf").clientSecret("cf8e711f318f4b2a96c53f37b5310e02").build
+  api.setAccessToken(api.clientCredentialsGrant.build.get.getAccessToken)
+  val patrickId = "124091297"
+  """
+
+unmanagedJars in Compile ++= (file("/Users/patrick/src/patrick/playlistgen/project/lib/") * "*.jar").classpath
 
 assemblySettings
 
