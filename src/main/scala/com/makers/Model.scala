@@ -1,17 +1,18 @@
-package makers
+package com.makers
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 import org.json4s._
 import org.json4s.jackson.Serialization
 import com.wrapper.spotify.Api
-import com.wrapper.spotify.models.{SimpleAlbum, SimpleArtist, SimplePlaylist, Track, User => SUser}
+import com.wrapper.spotify.models.{Page, SimpleAlbum, SimpleArtist, SimplePlaylist, Track, User => SUser}
+import com.wrapper.spotify.methods.UserPlaylistsRequest
 
 
 trait SpotifyEntity {
   def id: String
   def href: String
-  def name: String
+  def uri: String
 }
 
 trait Jsonable {
@@ -20,9 +21,10 @@ trait Jsonable {
 }
 
 case class Playlist(
-  override val id: String,
-  override val href: String,
-  override val name: String,
+  val id: String,
+  val href: String,
+  val uri: String,
+  val name: String,
   val description: String,
   val followerCount: Int,
   val owner: UserInfo,
@@ -30,9 +32,10 @@ case class Playlist(
 ) extends SpotifyEntity with Jsonable
 
 case class Song(
-  override val id: String,
-  override val href: String,
-  override val name: String,
+  val id: String,
+  val href: String,
+  val uri: String,
+  val name: String,
   val album: Album,
   val artist: Artist,
   val featured: List[Artist],
@@ -41,15 +44,16 @@ case class Song(
 ) extends SpotifyEntity with Jsonable
 
 case class Album(
-  override val id: String,
-  override val href: String,
-  override val name: String
+  val id: String,
+  val href: String,
+  val uri: String,
+  val name: String
 ) extends SpotifyEntity with Jsonable
 
 case class UserInfo(
-  override val id: String,
-  override val href: String,
-  override val name: String
+  val id: String,
+  val href: String,
+  val uri: String
 ) extends SpotifyEntity with Jsonable
 
 case class User(
@@ -58,23 +62,26 @@ case class User(
 ) extends Jsonable
 
 case class Artist(
-  override val id: String,
-  override val href: String,
-  override val name: String
+  val id: String,
+  val href: String,
+  val uri: String,
+  val name: String
 ) extends SpotifyEntity with Jsonable
 
 object Playlist {
   def apply(api: Api, user: UserInfo, sp: SimplePlaylist): Playlist = {
-    //println("user: " + user + " sp: " + sp.getName + " " + sp.getOwner.getId + " " + sp.getId)
     val playlist = api.getPlaylist(sp.getOwner.getId, sp.getId).build.get
-    val songs = playlist.getTracks.getItems.map(_.getTrack).map(Song(_))
+    val owner = UserInfo(playlist.getOwner)
+    val songs = playlist.getTracks.getItems.asScala.map(_.getTrack).map(Song(_))
+    //println(playlist.getFollowers.getHref)
     Playlist(
       sp.getId,
       sp.getHref,
+      sp.getUri,
       sp.getName,
       playlist.getDescription,
       playlist.getFollowers.getTotal,
-      user,
+      owner,
       songs.toList)
   }
 }
@@ -82,40 +89,44 @@ object Playlist {
 object Song {
   def apply(t: Track): Song = {
     val album = Album(t.getAlbum)
-    val artist = Artist(t.getArtists.head)
-    val featured = t.getArtists.tail.map(Artist(_)) // Need to check for order
+    val artists = t.getArtists.asScala
+    val artist = Artist(t.getArtists.asScala.head)
+    val featured = t.getArtists.asScala.tail.map(Artist(_)) // Seems like real artist is always first
     Song(t.getId,
       t.getHref,
+      t.getUri,
       t.getName,
       album,
       artist,
       featured.toList,
       t.getDuration,
       t.getPopularity
-      )
+    )
   }
 }
 
 object Album {
-  def apply(a: SimpleAlbum): Album = Album(a.getId, a.getHref, a.getName)
+  def apply(a: SimpleAlbum): Album = Album(a.getId, a.getHref, a.getUri, a.getName)
 }
 
 object Artist {
-  def apply(a: SimpleArtist): Artist = Artist(a.getId, a.getHref, a.getName)
+  def apply(a: SimpleArtist): Artist = Artist(a.getId, a.getHref, a.getUri, a.getName)
 }
 
 object UserInfo {
-  def apply(u: SUser): UserInfo = UserInfo(u.getId, u.getHref, u.getDisplayName)
+  def apply(api: Api, userId: String): UserInfo = {
+    val u = api.getUser(userId).build.get
+    UserInfo(u)
+  }
+  def apply(su: SUser): UserInfo = UserInfo(su.getId, su.getHref, su.getUri)
 }
 
 object User {
-  def apply(api: Api, u: String): User = {
-    val response = api.getPlaylistsForUser(u).build.get
-    //println(response)
-    //println(response.getItems.head.getOwner)
-    if(response.getItems.length == 0) throw new Exception("fuck")
-    val info = UserInfo(response.getItems.head.getOwner) // Need to check for 0 playlists
-    val playlists = response.getItems.toList
+  def apply(api: Api, info: UserInfo): User = {
+    val request = () => { api.getPlaylistsForUser(info.id).limit(50) }
+    val playlists = new Paginator(request).toList.flatten
+
+    val cleaned = playlists
       .filter(_.getId != "null")
       .filter(_.getOwner.getId != "spotify")
       .map { x =>
@@ -125,7 +136,22 @@ object User {
           case e: Exception => None
         }
       }
-    User(info, playlists.flatten)
+    User(info, cleaned.flatten)
   }
 }
 
+class Paginator(req: () => UserPlaylistsRequest.Builder) extends Iterator[List[SimplePlaylist]] {
+  private var offset = 0
+  private var haveNext = true
+
+  def hasNext = haveNext
+  def next = {
+    val res = get(req(), offset)
+    haveNext = (res.getNext != null)
+    offset = res.getOffset + res.getLimit
+    extract(res)
+  }
+
+  private def get(req: UserPlaylistsRequest.Builder, off: Int) = req.offset(off).build.get
+  private def extract(p: Page[SimplePlaylist]): List[SimplePlaylist] = p.getItems.asScala.toList
+}

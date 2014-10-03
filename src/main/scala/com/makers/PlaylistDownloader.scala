@@ -1,4 +1,4 @@
-package makers
+package com.makers
 
 import java.io.{BufferedWriter, FileWriter}
 
@@ -8,10 +8,10 @@ import scala.collection.JavaConverters._
 
 
 object PlaylistDownloader {
-  val api = Api.builder()
+  val api = Api.builder
     .clientId("276a56a316944e23a41d97b6b1895fdf")
     .clientSecret("cf8e711f318f4b2a96c53f37b5310e02")
-    .build()
+    .build
 
   def run(universeFile: String, file: String) {
     val universe = readUniverse(universeFile)
@@ -20,7 +20,7 @@ object PlaylistDownloader {
     val users = universe.map { x =>
         println("Fetching playlists for " + x)
         try {
-          Some(User(api, x))
+          Some(User(api, UserInfo(api ,x)))
         } catch {
           case _: Throwable => None
         }
