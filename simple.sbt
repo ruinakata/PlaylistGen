@@ -48,7 +48,7 @@ initialCommands in console :=
   val rec = new Recommender(users)
   """
 
-unmanagedJars in Compile ++= (file("/Users/patrick/src/patrick/playlistgen/project/lib/") * "*.jar").classpath
+unmanagedJars in Compile ++= (file("/Users/rui.nakata/private/PlaylistGen/project/lib/") * "*.jar").classpath
 
 assemblySettings
 
