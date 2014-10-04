@@ -45,7 +45,9 @@ initialCommands in console :=
   val disclosure = artists.find(_.name == "Disclosure").get
   val cleanBandit = artists.find(_.name == "Clean Bandit").get
   val flume = artists.find(_.name == "Flume").get
+  val input = List(sbtrkt, disclosure, cleanBandit, flume)
   val rec = new Recommender(users)
+  val similar = rec.recommend(input)
   """
 
 unmanagedJars in Compile ++= (file("/Users/patrick/src/patrick/playlistgen/project/lib/") * "*.jar").classpath

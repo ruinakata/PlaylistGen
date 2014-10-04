@@ -13,14 +13,14 @@ object PlaylistDownloader {
 
     val w = new BufferedWriter(new FileWriter(file))
     println("Writing output to " + file)
-    w.write("[")
+    w.write("[\n")
 
     val users = universe.zipWithIndex.foreach { case (x, idx) =>
       println("Fetching playlists for " + x)
       try {
         val user = User(api, UserInfo(api ,x))
         w.write(user.toJSON)
-        if(idx < universe.length - 2) w.write(",")
+        if(idx < universe.length - 2) w.write(",\n")
       } catch {
           case e: Throwable => {
             System.err.println("User: " + x + " failed to fetch");
@@ -28,13 +28,8 @@ object PlaylistDownloader {
           }
         }
       }
-      //.flatten
-      //.map(_.toJSON)
-      //.mkString(",")
 
-    //val w = new BufferedWriter(new FileWriter(file))
-    //w.write("[" + users + "]")
-    w.write("]")
+    w.write("]\n")
     w.close
     println("Total requests: " + api.count)
     api.shutdown

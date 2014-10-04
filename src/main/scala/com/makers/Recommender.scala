@@ -4,33 +4,59 @@ import com.makers.model._
 
 import breeze.linalg._
 
-class Recommender(val users: List[User]) {
+import scalaz._
+import Scalaz._
+
+class Recommender(val users: Set[User]) {
+  type IndexedArtists = List[(String, Int)]
+  val uniques: IndexedArtists = uniqueArtists.toList.zipWithIndex
 
   def recommend(artists: List[Artist]) = {
-    val uniques = uniqueArtists.toList.zipWithIndex
-    val uniqueCount = uniques.length
-    val inputV = toSV(uniqueCount, indexUniques(uniques, artists))
+    val inputV = toSV(indexUniques(artists))
     val universe = users.flatMap(_.playlists).filter(_.uniqueArtists.size > 4)
 
     val similar = universe.map { pl =>
-      val plV = toSV(uniqueCount, indexUniques(uniques, pl.songs.map(_.artist).toSet.toList))
+      val plV = playlistSV(pl)
       (pl, (inputV dot plV) / (inputV.norm() * plV.norm() ))
     }
-
-    val sorted = similar.sortWith(_._2 > _._2).take(10)
-    sorted.foreach(x => {
-      println("Similarity Score: " + x._2 + " Artists: " + x._1.songs.map(_.artist.name).mkString(", "))
-    })
-    similar
+    similar.toList.sortWith(_._2 > _._2)
   }
 
-  def toSV(size: Int, is: List[Int]) = {
+  def recommendCount(artists: List[Artist]) = {
+    val inputV = toSV(indexUniques(artists))
+    val universe = users.flatMap(_.playlists).filter(_.uniqueArtists.size > 4)
+
+    val similar = universe.map { pl =>
+      val plV = countSV(countUniques(pl.songs.map(_.artist)))
+      (pl, (inputV dot plV) / (inputV.norm() * plV.norm() ))
+    }
+    similar.toList.sortWith(_._2 > _._2)
+  }
+
+  // Helpers
+  def playlistSV(pl: Playlist) = toSV(indexUniques(pl.songs.map(_.artist).toSet.toList))
+
+  def toSV(is: List[Int], size: Int = uniques.length) = {
     val vec = SparseVector.zeros[Int](size)
     is.map(vec(_) = 1)
     vec
   }
 
-  def indexUniques(uniques: List[(String, Int)], input: List[Artist]) =
+  def countSV(is: List[(Int, Int)], size: Int = uniques.length) = {
+    val vec = SparseVector.zeros[Int](size)
+    is.map { case (idx, count) => vec(idx) = count }
+    vec
+  }
+
+  def countUniques(input: List[Artist]): List[(Int, Int)] = {
+    val i = input.map(_ -> 1).foldMap(Map(_)).toList.map { case (artist, count) =>
+      uniques.find(_._1 == artist.name).map(x => (x._2, count))
+    }
+    i.flatten
+  }
+
+
+  def indexUniques(input: List[Artist]): List[Int] =
     for {
       a <- input
       (artist, idx) <- uniques if artist == a.name
@@ -42,6 +68,6 @@ class Recommender(val users: List[User]) {
       playlist <- user.playlists
       song <- playlist.songs
     } yield song.artist.name
-    artists.toSet
+    artists
   }
 }
