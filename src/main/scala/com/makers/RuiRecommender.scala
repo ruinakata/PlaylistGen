@@ -31,6 +31,7 @@ class RuiRecommender(val users: List[User]) {
         val considered = universe.map {playlist =>
             val listofartists = playlist.songs.map {song => 
                 song.artist 
+                //
             }
         }
     }
