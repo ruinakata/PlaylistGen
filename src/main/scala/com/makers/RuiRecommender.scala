@@ -25,8 +25,24 @@ class Recommender(val users: List[User]) {
   }
 
 class RuiRecommender(val users: List[User]) {
-
+// loop thru all playlists and pick out ones that have at least on of the artists in it
+// make a hash of the songs with the count
+// also make a hash of the artists with the count
     def recommend(artists: List[Artist]) = {
-        
+        val hashofrelated = collection.mutable.Map[String, Int]
+        val universe = users.flatMap(._playlists).filter(_.uniqueArtists.size > 4)
+        val considered = universe.map { playlist => 
+            val listofsongs = playlist.songs
+            listofsongs.map { song => 
+                val artistofsong = song.artist 
+                if (artists contains artistofsong) {
+                    hashofrelated(song) = hashofrelated.getOrElse(key, 0) 
+                }
+            }
+         }
+         println(hashofrelated)
     }
 }
+
+1. loop thru all playlists and pick out ones that have at least one of the artists in it 
+2. make a hash of the artists in the playlist with their count 
