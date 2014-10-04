@@ -30,6 +30,7 @@ class Recommender(val users: List[User]) {
     vec
   }
 
+
   def indexUniques(uniques: List[(String, Int)], input: List[Artist]) =
     for {
       a <- input
