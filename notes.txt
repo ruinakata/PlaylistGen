@@ -1,0 +1,8 @@
+SBT_OPTS="-Xmx7g" sbt console
+val input = List(sbtrkt, disclosure, cleanBandit, flume)
+rec.recommend(input)
+val similar = res1
+val sorted = similar.sortWith(_._2 > _._2)
+sorted.take(10).foreach(x => println(x._1.name + " " + x._2))
+sorted.head._1
+sorted.head._1.songs.foreach(s => println(s.name + "\t" + s.artist.name))
