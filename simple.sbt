@@ -48,9 +48,10 @@ initialCommands in console :=
   val input = List(sbtrkt, disclosure, cleanBandit, flume)
   val rec = new Recommender(users)
   val similar = rec.recommend(input)
+  val ruiRec = new RuiRecommender(users)
   """
 
-unmanagedJars in Compile ++= (file("/Users/patrick/src/patrick/playlistgen/project/lib/") * "*.jar").classpath
+unmanagedJars in Compile ++= (file("/Users/rui.nakata/private/PlaylistGen/project/lib/") * "*.jar").classpath
 
 assemblySettings
 
