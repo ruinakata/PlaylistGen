@@ -8,7 +8,13 @@ sorted.head._1
 sorted.head._1.songs.foreach(s => println(s.name + "\t" + s.artist.name))
 
 
+ruiRec.recommend(input)
 
-Test git workflow
+GIT STUFF
+git commit -am "something"
 
-update workflow
+
+to get patrick's stuff
+git fetch patrick
+or
+git pull patrick master  (merge commits...)

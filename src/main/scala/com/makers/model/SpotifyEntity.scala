@@ -33,7 +33,7 @@ case class Playlist(
   val songs: List[Song]
 ) extends SpotifyEntity with Jsonable {
 
-  def songCount() = songs.map(_.name -> 1).foldMap(Map(_))
+  def songCount() = songs.map(_ -> 1).foldMap(Map(_))
 
   def artistCount() = songs.map(_.artist.name -> 1).foldMap(Map(_))
 
@@ -82,6 +82,9 @@ case class UserInfo(
 
 object Playlist {
   def apply(api: SpotifyApi, user: UserInfo, sp: SimplePlaylist): Playlist = {
+    // apply returns new playlist
+    // companion object
+    // uses spotify api to get more info
     val playlist = api.get.getPlaylist(sp.getOwner.getId, sp.getId).build.get
     val owner = UserInfo(playlist.getOwner)
     val songs = playlist.getTracks.getItems.asScala.map(_.getTrack).map(Song(_))
